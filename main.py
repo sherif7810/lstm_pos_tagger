@@ -9,15 +9,21 @@ training_data = [
     ("Everybody read that book".split(), ["NN", "V", "DET", "NN"])
 ]
 
-EMBEDDING_DIM = 6
+WORD_EMBEDDING_DIM = 6
+CHAR_EMBEDDING_DIM = 6
 HIDDEN_DIM = 6
 
 word_to_ix = {}
+char_to_ix = {}
 tag_to_ix = {}
 for seq, tags in training_data:
     for word in seq:
         if word not in word_to_ix:
             word_to_ix[word] = len(word_to_ix)
+
+        for char in word:
+            if char not in char_to_ix:
+                char_to_ix[char] = len(char_to_ix)
 
     for tag in tags:
         if tag not in tag_to_ix:
@@ -32,13 +38,14 @@ def prepare_sequence(seq, to_ix):
 class LSTMTagger(nn.Module):
     """LSTM part-os-speech (PoS) tagger."""
 
-    def __init__(self, embedding_dim, hidden_dim, vocab_size, tagset_size):
+    def __init__(self, word_embedding_dim, char_embedding_dim, hidden_dim, vocab_size, chars_size, tagset_size):
         super(LSTMTagger, self).__init__()
         self.hidden_dim = hidden_dim
 
-        self.word_embeddings = nn.Embedding(vocab_size, embedding_dim)
+        self.word_embeddings = nn.Embedding(vocab_size, word_embedding_dim)
+        self.char_embeddings = nn.Embedding(chars_size, char_embedding_dim)
 
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim)
+        self.lstm = nn.LSTM(word_embedding_dim, hidden_dim)
         self.hidden = (torch.zeros(1, 1, self.hidden_dim),
                        torch.zeros(1, 1, self.hidden_dim))
 
@@ -58,7 +65,7 @@ class LSTMTagger(nn.Module):
         return tag_scores
 
 
-model = LSTMTagger(EMBEDDING_DIM, HIDDEN_DIM, len(word_to_ix), len(tag_to_ix))
+model = LSTMTagger(WORD_EMBEDDING_DIM, CHAR_EMBEDDING_DIM, HIDDEN_DIM, len(word_to_ix), len(char_to_ix), len(tag_to_ix))
 loss_function = nn.NLLLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
 
