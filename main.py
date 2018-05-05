@@ -68,6 +68,7 @@ class LSTMTagger(nn.Module):
                                  torch.zeros(1, 1, self.char_repr_dim))
 
     def forward(self, sentence):
+        sentence_length = len(sentence)
         word_characters_ixs = {}
         for word in sentence:
             word_ix = torch.tensor([word_to_ix[word]])
@@ -84,13 +85,13 @@ class LSTMTagger(nn.Module):
                 char_embed = self.char_embeddings(char_ix)
                 c, self.char_lstm_hidden = self.char_lstm(
                     char_embed.view(1, 1, -1), self.char_lstm_hidden)
-            word_embed = torch.cat((word_embed, c.view(1, -1)), 1)
             word_embeds.append(word_embed)
-        word_embeds = torch.cat(word_embeds)
+            word_embeds.append(c.view(1, -1))
+        word_embeds = torch.cat(word_embeds, 1)
 
         lstm_out, self.word_lstm_hidden = self.word_lstm(
-            word_embeds.view(len(sentence), 1, -1), self.word_lstm_hidden)
-        tag_space = self.hidden2tag(lstm_out.view(len(sentence), -1))
+            word_embeds.view(sentence_length, 1, -1), self.word_lstm_hidden)
+        tag_space = self.hidden2tag(lstm_out.view(sentence_length, -1))
         tag_scores = F.log_softmax(tag_space, dim=1)
         return tag_scores
 
