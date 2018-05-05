@@ -105,6 +105,8 @@ optimizer = optim.SGD(model.parameters(), lr=0.1)
 
 # Training
 for epoch in range(300):
+    total_loss = torch.tensor(0.)
+
     for sentence, tags in training_data:
         targets = make_ixs(tags, tag_to_ix)
 
@@ -117,10 +119,16 @@ for epoch in range(300):
         loss.backward()
         optimizer.step()
 
+        total_loss += loss
+
+    print('Epoch {}: Loss = {}.'.format(epoch + 1, loss.item()))
+
 # Testing
+print('Testing:')
 with torch.no_grad():
-    model.init_word_hidden()
     inputs = training_data[0][0]
+
+    model.init_word_hidden()
     tag_scores = model(inputs)
 
     print(tag_scores)
