@@ -14,6 +14,7 @@ CHAR_EMBEDDING_DIM = 6
 CHAR_REPR_DIM = 3
 HIDDEN_DIM = 6
 
+# Create and fill word-to-index, character-to-index and tag-to-index dictionaries
 word_to_ix = {}
 char_to_ix = {}
 tag_to_ix = {}
@@ -81,6 +82,7 @@ class LSTMTagger(nn.Module):
 
             self.init_char_hidden()
             c = None  # Character-level representation.
+            # Character-level representation is the LSTM output of the last character.
             for char_ix in char_ixs:
                 char_embed = self.char_embeddings(char_ix)
                 c, self.char_lstm_hidden = self.char_lstm(
@@ -90,7 +92,9 @@ class LSTMTagger(nn.Module):
         word_embeds = torch.cat(word_embeds, 1)
 
         lstm_out, self.word_lstm_hidden = self.word_lstm(
-            word_embeds.view(sentence_length, 1, -1), self.word_lstm_hidden)
+            # Each sentence embedding dimensions are word embedding dimensions + character representation dimensions
+            word_embeds.view(sentence_length, 1, -1),
+            self.word_lstm_hidden)
         tag_space = self.hidden2tag(lstm_out.view(sentence_length, -1))
         tag_scores = F.log_softmax(tag_space, dim=1)
         return tag_scores
