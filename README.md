@@ -5,4 +5,4 @@ The second LSTM takes word embedding dimensions + character representation dimes
 It uses Python and PyTorch.    
 
 ## References
-(Exercise is at the end of tutorial)[http://pytorch.org/tutorials/beginner/nlp/word_embeddings_tutorial.html].
+[Exercise is at the end of tutorial](http://pytorch.org/tutorials/beginner/nlp/word_embeddings_tutorial.html).
